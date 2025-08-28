@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Food Delivery — Full Page UI</title>
+  <style>
+    :root{
+      --bg:#ffb08c;            /* page background */
+      --accent:#ff5c1c;        /* primary orange */
+      --accent-2:#ff6f3d;      /* border/orange */
+      --text:#222;
+      --muted:#6c6c6c;
+      --card:#fff;
+      --border:#e8e8e8;
+      --shadow:0 10px 30px rgba(0,0,0,.08);
+      --radius:18px;
+    }
+    html,body{height:100%;}
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif;
+      background: var(--bg);
+      color:var(--text);
+    }
+
+    /* Wrapper = the white app card */
+    .wrapper{
+      width:min(1280px, 96vw);
+      margin:32px auto;
+      background:var(--card);
+      border-radius:var(--radius);
+      border:4px solid var(--accent-2);
+      box-shadow: var(--shadow);
+      min-height: calc(100vh - 64px);
+      display:grid;
+      grid-template-columns: 72px 1fr 390px; /* sidebar | main | order */
+    }
+
+    /* Left sidebar */
+    .sidebar{
+      border-right:1px solid var(--border);
+      background:#fff;
+      display:flex; flex-direction:column; align-items:center; gap:16px; padding:12px 0;
+    }
+    .logo{width:40px;height:40px;border-radius:12px;background:var(--accent);display:grid;place-items:center;color:#fff;font-weight:700;letter-spacing:.5px}
+    .nav-group{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+    .nav-btn{all:unset; cursor:pointer; width:44px; height:44px; display:grid; place-items:center; border-radius:12px;}
+    .nav-btn:hover{background:#f7f7f7}
+    .nav-btn.active{position:relative}
+    .nav-btn.active::before{content:"";position:absolute;left:-4px;width:3px;height:22px;border-radius:3px;background:var(--accent)}
+
+    /* Main content */
+    .main{padding:22px; overflow:hidden}
+
+    /* Search */
+    .search-row{display:flex; gap:12px; align-items:center}
+    .search{flex:1;display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--border); box-shadow: var(--shadow); padding:12px 14px; border-radius:10px}
+    .search input{all:unset; flex:1; color:#333}
+    .hamburger{width:38px;height:38px;border:1px solid var(--border);display:grid;place-items:center;border-radius:10px;cursor:pointer}
+
+    /* Hero banner */
+    .hero{position:relative;margin-top:16px;border-radius:12px;overflow:hidden; height:180px; display:grid; grid-template-columns: 55% 45%;}
+    .hero .promo{position:relative;background:var(--accent);color:#fff;padding:24px 22px;display:flex;flex-direction:column;justify-content:center}
+    .hero .promo h2{margin:0 0 6px;font-size:32px;line-height:1}
+    .hero .promo p{margin:0;font-size:18px;opacity:.95}
+    .ellipsis{position:absolute;right:16px;bottom:14px;display:flex;gap:6px}
+    .dot{width:8px;height:8px;border-radius:50%;background:#fff;opacity:.85}
+    .hero .photo::before{content:"";position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1400&auto=format&fit=crop') center/cover no-repeat;filter:grayscale(.1);}
+
+    /* Tabs */
+    .tabs{display:flex;gap:18px;align-items:center;margin:18px 0 8px;}
+    .tab{all:unset;cursor:pointer;font-size:14px;color:#444;display:flex;align-items:center;gap:6px; padding:6px 8px;border-radius:8px}
+    .tab.active{color:var(--accent);background:#fff3ed;border:1px solid #ffd7c8}
+    .tab .icon{font-size:16px}
+    .rule{height:3px;background:#ffe3d7;border-radius:2px;margin-bottom:12px}
+
+    /* Product grid */
+    .grid{display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:16px;}
+    @media (max-width: 1020px){ .wrapper{grid-template-columns:72px 1fr}; .order{display:none} }
+    @media (max-width: 860px){ .grid{grid-template-columns: repeat(2, minmax(0,1fr));} }
+    @media (max-width: 620px){ .wrapper{grid-template-columns: 60px 1fr}; .grid{grid-template-columns: 1fr;} }
+
+    .card{position:relative;background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow: var(--shadow);}
+    .card .thumb{height:160px;background:#eee}
+    .card .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .card .body{padding:10px 12px 12px}
+    .title-row{display:flex;justify-content:space-between;align-items:center;margin:4px 0 6px}
+    .title{font-weight:700}
+    .price{font-weight:700}
+    .meta{font-size:12px;color:var(--muted)}
+
+    .heart{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:0 6px 16px rgba(0,0,0,.15); cursor:pointer}
+    .heart svg{width:18px;height:18px;fill:none;stroke:#ff6a48;stroke-width:2}
+    .heart.active svg{fill:#ff6a48}
+
+    .add-btn{margin-top:8px;width:100%;border-radius:10px;border:1px solid var(--accent);background:#fff;color:var(--accent);padding:8px 10px;font-weight:600;cursor:pointer}
+    .add-btn:hover{background:#fff7f3}
+
+    /* Right order panel */
+    .order{border-left:1px solid var(--border); padding:20px; background:#fff}
+    .order h3{margin:0 0 8px}
+
+    .address{display:flex;align-items:center;justify-content:space-between;background:#fafafa;border:1px solid var(--border);padding:12px;border-radius:12px}
+    .addr-line{font-weight:700}
+    .addr-meta{display:flex;gap:14px;color:var(--muted);font-size:12px;margin-top:6px}
+
+    .cart-items{margin-top:16px;display:flex;flex-direction:column;gap:10px;max-height:420px;overflow:auto;padding-right:4px}
+
+    .ci{display:grid;grid-template-columns:64px 1fr auto;gap:10px;align-items:center;border:1px solid var(--border);border-radius:12px;padding:8px}
+    .ci img{width:64px;height:64px;border-radius:10px;object-fit:cover}
+    .ci .name{font-weight:600}
+    .ci .extra{font-size:12px;color:var(--muted)}
+
+    .qty{display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+    .qty button{all:unset;cursor:pointer;padding:6px 10px}
+    .qty input{width:36px;text-align:center;border:none;outline:none}
+
+    .ci .right{display:flex;align-items:center;gap:8px}
+    .remove{all:unset;cursor:pointer;color:#999;font-size:18px;line-height:1}
+
+    .summary{margin-top:14px;border-top:1px dashed var(--border);padding-top:10px}
+    .row{display:flex;justify-content:space-between;margin:6px 0}
+    .total{font-size:18px;font-weight:800}
+
+    .checkout{margin-top:14px;width:100%;padding:12px 16px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer;box-shadow: var(--shadow)}
+    .checkout:active{transform:translateY(1px)}
+
+    /* New styles for tab content */
+    .tab-content {
+      display: none;
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-top: 20px;
+      background: var(--card);
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .tab-content h2 {
+      margin-top: 0;
+      color: var(--accent);
+    }
+    .order-item, .favorite-item {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fafafa;
+    }
+    .order-item img, .favorite-item img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    .order-item-details, .favorite-item-details {
+      flex-grow: 1;
+    }
+    .order-item-details .name, .favorite-item-details .name {
+      font-weight: 600;
+      font-size: 1.1em;
+    }
+    .order-item-details .price, .favorite-item-details .price {
+      color: var(--muted);
+      font-size: 0.9em;
+    }
+    .order-item-details .qty {
+      font-size: 0.9em;
+      color: var(--muted);
+    }
+    .inbox-message {
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 10px;
+      background: #fafafa;
+    }
+    .inbox-message strong {
+      color: var(--accent);
+    }
+    .settings-option {
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 10px;
+      background: #fafafa;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .settings-option label {
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper" role="application">
+    <!-- Sidebar -->
+    <aside class="sidebar" aria-label="Sidebar">
+      <div class="logo">FD</div>
+      <div class="nav-group">
+        <button class="nav-btn active" title="Home" aria-label="Home" data-nav-tab="home">🏠</button>
+        <button class="nav-btn" title="Favorites" aria-label="Favorites" data-nav-tab="favorites">❤️</button>
+        <button class="nav-btn" title="Orders" aria-label="Orders" data-nav-tab="orders">🛒</button>
+        <button class="nav-btn" title="Inbox" aria-label="Inbox" data-nav-tab="inbox">📩</button>
+        <button class="nav-btn" title="Settings" aria-label="Settings" data-nav-tab="settings">⚙️</button>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main" id="main">
+      <!-- Home Tab Content -->
+      <div id="home-content" class="tab-content active">
+        <!-- Search -->
+        <div class="search-row">
+          <div class="search" role="search">
+            <span>🔎</span>
+            <input id="search" type="text" placeholder="What would you like to eat?" />
+          </div>
+          <div class="hamburger" id="menuBtn" aria-label="Menu" title="Menu">≡</div>
+        </div>
+
+        <!-- Hero banner -->
+        <section class="hero" aria-label="Promo">
+          <div class="promo">
+            <h2>30% Off</h2>
+            <p>Fitness Meal</p>
+            <div class="ellipsis"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          </div>
+          <div class="photo" aria-hidden="true"></div>
+        </section>
+
+        <!-- Tabs -->
+        <div class="tabs" role="tablist" aria-label="Categories">
+          <button class="tab active" data-tab="nearby" role="tab"><span class="icon">📍</span>Nearby</button>
+          <button class="tab" data-tab="promo" role="tab"><span class="icon">🏷️</span>Promotion</button>
+          <button class="tab" data-tab="new" role="tab"><span class="icon">🆕</span>Newcomers</button>
+          <button class="tab" data-tab="best" role="tab"><span class="icon">⭐</span>Best Seller</button>
+          <button class="tab" data-tab="rated" role="tab"><span class="icon">⬆️</span>Top Rated</button>
+          <button class="tab" data-tab="all" role="tab"><span class="icon">📚</span>All</button>
+        </div>
+        <div class="rule" aria-hidden="true"></div>
+
+        <!-- Product grid -->
+        <section class="grid" id="grid" aria-live="polite"></section>
+      </div>
+
+      <!-- Favorites Tab Content -->
+      <div id="favorites-content" class="tab-content">
+        <h2>My Favorites</h2>
+        <div id="favorite-items">
+          <!-- Favorite items will be rendered here -->
+        </div>
+        <p id="no-favorites-message" style="display: none; color: var(--muted);">No favorite items yet.</p>
+      </div>
+
+      <!-- Orders Tab Content -->
+      <div id="orders-content" class="tab-content">
+        <h2>My Cart Items</h2>
+        <div id="cart-items-list">
+          <!-- Cart items will be rendered here -->
+        </div>
+        <div id="cart-summary" style="margin-top: 20px; padding-top: 15px; border-top: 2px dashed var(--border);">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <span>Subtotal:</span>
+            <strong id="orders-subtotal">$0.00</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <span>Delivery Fee:</span>
+            <span id="orders-delivery">$9.00</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 1.2em; font-weight: bold;">
+            <span>Total:</span>
+            <span id="orders-total">$9.00</span>
+          </div>
+          <button class="checkout" id="orders-checkout" style="margin-top: 15px; width: 100%;">Check Out</button>
+        </div>
+        <p id="no-cart-message" style="display: none; color: var(--muted);">Your cart is empty. Add some items from the Home tab!</p>
+      </div>
+
+      <!-- Inbox Tab Content -->
+      <div id="inbox-content" class="tab-content">
+        <h2>Inbox</h2>
+        <div class="inbox-message">
+          <strong>Welcome!</strong> Your food delivery journey begins now.
+        </div>
+        <div class="inbox-message">
+          <strong>Special Offer:</strong> Get 15% off your next order with code FOODIE15.
+        </div>
+        <div class="inbox-message">
+          <strong>Delivery Update:</strong> Your order #12345 is on its way!
+        </div>
+        <p style="color: var(--muted);">No new messages.</p>
+      </div>
+
+      <!-- Settings Tab Content -->
+      <div id="settings-content" class="tab-content">
+        <h2>Settings</h2>
+        <div class="settings-option">
+          <label for="notifications">Enable Notifications</label>
+          <input type="checkbox" id="notifications" checked>
+        </div>
+        <div class="settings-option">
+          <label for="dark-mode">Dark Mode</label>
+          <input type="checkbox" id="dark-mode">
+        </div>
+        <div class="settings-option">
+          <label for="payment-methods">Payment Methods</label>
+          <button>Manage</button>
+        </div>
+        <div class="settings-option">
+          <label for="privacy-policy">Privacy Policy</label>
+          <button>View</button>
+        </div>
+        <div class="settings-option">
+          <label for="logout">Logout</label>
+          <button>Logout</button>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Order / Cart -->
+    <aside class="order" id="order" aria-label="My Order">
+      <h3>My Order</h3>
+      <div class="address">
+        <div>
+          <div class="addr-line" id="addrLine">1342 Morris Street</div>
+          <div class="addr-meta"><span>⏱️ 40 mins</span><span>📍 5 km</span></div>
+        </div>
+        <button id="addrToggle" aria-label="Change address" title="Change address">⬇️</button>
+      </div>
+
+      <div class="cart-items" id="cartItems"></div>
+
+      <div class="summary">
+        <div class="row"><span>Sub Total</span><strong id="subtotal">$0.00</strong></div>
+        <div class="row"><span>Delivery Fee</span><span id="delivery">$9.00</span></div>
+        <div class="row total"><span>Total</span><span id="total">$9.00</span></div>
+        <button class="checkout" id="checkout">Check Out</button>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    // ----------------------------
+    // Data
+    // ----------------------------
+    const products = [
+      { id: 'p1', name: 'Boat Noodle', price: 39, tag:['promo','best','rated','nearby'], image: 'https://i.pinimg.com/736x/c7/7b/f8/c77bf8513c640f44c307b37a2cfb4d7f.jpg' },
+      { id: 'p2', name: 'Papaya Salad', price: 39, tag:['nearby','rated'], image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT3IMfiY4XnZxQUW3Ox68mhjAcj1QXbwg_usQ&s' },
+      { id: 'p3', name: 'Pad thai', price: 39, tag:['new','nearby'], image: 'https://inquiringchef.com/wp-content/uploads/2023/02/Authentic-Pad-Thai_square-1908.jpg' },
+      { id: 'p4', name: 'Ramen Bowl', price: 29, tag:['new','promo'], image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRMIepz2ae9Apf9z8L0LpzrLNFT0Wcv5_nHiQ&s' },
+      { id: 'p5', name: 'Grilled Chicken', price: 42, tag:['nearby','best'], image: 'https://www.themediterraneandish.com/wp-content/uploads/2020/07/grilled-whole-chicken-recipe-10.jpg' },
+      { id: 'p6', name: 'Pancakes', price: 25, tag:['rated','promo'], image: 'https://www.tasteofhome.com/wp-content/uploads/2024/09/Buttermilk-Pancakes_EXPS_TOHVP24_33639_MF_08_15_1_RMS.jpg' },
+      { id: 'p7', name: 'Sushi Set', price: 49, tag:['rated','best'], image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrMS4Po_FC1oiyZJH7ANGkWvCzj3Def_X6Fw&s' },
+      { id: 'p8', name: 'Fried Rice', price: 31, tag:['nearby','new'], image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXjN1xrsb5jV0NjvjvPDykyKi9FJzXxFDg4Q&s' },
+      { id: 'p9', name: 'Chicken Basil Rice', price: 27, tag:['promo','nearby'], image: 'https://cdn.shopify.com/s/files/1/0552/6270/7887/files/Pad_Gra_Prow.jpg?v=1633933810' },
+    ];
+
+    // App state
+    let favorites = new Set(JSON.parse(localStorage.getItem('favorites')||'[]'));
+    let cart = JSON.parse(localStorage.getItem('cart')||'[]'); // [{id,qty,extra}]
+    let activeTab = 'home'; // Changed initial active tab to 'home'
+    let term = '';
+    const deliveryFee = 9;
+
+    // Elements
+    const grid = document.getElementById('grid');
+    const subtotalEl = document.getElementById('subtotal');
+    const totalEl = document.getElementById('total');
+    const cartItemsEl = document.getElementById('cartItems');
+    const favoriteItemsEl = document.getElementById('favorite-items');
+    const noFavoritesMessageEl = document.getElementById('no-favorites-message');
+    const cartItemsListEl = document.getElementById('cart-items-list');
+    const noCartMessageEl = document.getElementById('no-cart-message');
+    const ordersSubtotalEl = document.getElementById('orders-subtotal');
+    const ordersTotalEl = document.getElementById('orders-total');
+
+    // Helpers
+    const money = v => `$${v.toFixed(2)}`;
+
+    function filterProducts(){
+      return products.filter(p =>
+        (activeTab==='all' || p.tag.includes(activeTab)) &&
+        (term==='' || p.name.toLowerCase().includes(term))
+      );
+    }
+
+    function renderProducts(){
+      grid.innerHTML = '';
+      for (const p of filterProducts()){
+        const card = document.createElement('article'); card.className='card'; card.setAttribute('aria-label', p.name);
+        card.innerHTML = `
+          <div class="thumb"><img src="${p.image}" alt="${p.name}"></div>
+          <div class="heart ${favorites.has(p.id)?'active':''}" data-id="${p.id}" title="Toggle favorite" aria-label="Toggle favorite">
+            ${heartSvg()}
+          </div>
+          <div class="body">
+            <div class="title-row">
+              <div class="title">${p.name}</div>
+              <div class="price">${money(p.price)}</div>
+            </div>
+            <div class="meta">Fast-Food</div>
+            <button class="add-btn" data-add="${p.id}">Add to cart</button>
+          </div>`;
+        grid.appendChild(card);
+      }
+    }
+
+    function heartSvg(){
+      return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.716-4.438-9.428-7.15C.86 12.138.5 9.23 2.343 7.394c1.843-1.834 4.752-1.477 6.457.229L12 10.821l3.2-3.198c1.706-1.706 4.615-2.063 6.457-.229 1.844 1.836 1.485 4.744-.229 6.457C18.716 16.562 12 21 12 21z"/></svg>`
+    }
+
+    function renderCart(){
+      cartItemsEl.innerHTML = '';
+      let subtotal = 0;
+      for (const line of cart){
+        const p = products.find(x=>x.id===line.id);
+        if (!p) continue;
+        subtotal += p.price * line.qty;
+        const row = document.createElement('div'); row.className='ci';
+        row.innerHTML = `
+          <img src="${p.image}" alt="${p.name}">
+          <div>
+            <div class="name">${p.name}</div>
+            <div class="extra">${line.extra || 'Spicy level'}</div>
+          </div>
+          <div class="right">
+            <div class="qty" aria-label="Quantity">
+              <button data-dec="${p.id}" aria-label="Decrease">–</button>
+              <input type="number" min="1" value="${line.qty}" data-qty="${p.id}">
+              <button data-inc="${p.id}" aria-label="Increase">+</button>
+            </div>
+            <div class="price">${money(p.price*line.qty)}</div>
+            <button class="remove" title="Remove" aria-label="Remove" data-del="${p.id}">×</button>
+          </div>`;
+        cartItemsEl.appendChild(row);
+      }
+      subtotalEl.textContent = money(subtotal);
+      totalEl.textContent = money(subtotal + (cart.length?deliveryFee:0));
+      localStorage.setItem('cart', JSON.stringify(cart));
+      
+      // Also update the Orders tab if it's active
+      if (document.getElementById('orders-content').classList.contains('active')) {
+        renderOrdersTab();
+      }
+    }
+
+    function renderFavorites() {
+      favoriteItemsEl.innerHTML = '';
+      if (favorites.size === 0) {
+        noFavoritesMessageEl.style.display = 'block';
+        return;
+      }
+      noFavoritesMessageEl.style.display = 'none';
+
+      for (const favId of favorites) {
+        const p = products.find(x => x.id === favId);
+        if (!p) continue;
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'favorite-item';
+        itemDiv.innerHTML = `
+          <img src="${p.image}" alt="${p.name}">
+          <div class="favorite-item-details">
+            <div class="name">${p.name}</div>
+            <div class="price">${money(p.price)}</div>
+          </div>
+          <button class="heart active" data-id="${p.id}" title="Remove from favorites" aria-label="Remove from favorites">
+            ${heartSvg()}
+          </button>
+        `;
+        favoriteItemsEl.appendChild(itemDiv);
+      }
+    }
+
+    function renderOrdersTab() {
+      cartItemsListEl.innerHTML = '';
+      let subtotal = 0;
+      
+      if (cart.length === 0) {
+        noCartMessageEl.style.display = 'block';
+        document.getElementById('cart-summary').style.display = 'none';
+        return;
+      }
+      
+      noCartMessageEl.style.display = 'none';
+      document.getElementById('cart-summary').style.display = 'block';
+
+      for (const line of cart){
+        const p = products.find(x=>x.id===line.id);
+        if (!p) continue;
+        subtotal += p.price * line.qty;
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'order-item';
+        itemDiv.innerHTML = `
+          <img src="${p.image}" alt="${p.name}">
+          <div class="order-item-details">
+            <div class="name">${p.name}</div>
+            <div class="qty">Quantity: ${line.qty}</div>
+            <div class="price">${money(p.price * line.qty)}</div>
+          </div>
+          <button class="remove" title="Remove from cart" aria-label="Remove from cart" data-del="${p.id}">×</button>
+        `;
+        cartItemsListEl.appendChild(itemDiv);
+      }
+      
+      ordersSubtotalEl.textContent = money(subtotal);
+      ordersTotalEl.textContent = money(subtotal + deliveryFee);
+    }
+
+    // Event delegation for grid and cart
+    grid.addEventListener('click', (e)=>{
+      const fav = e.target.closest('.heart');
+      if (fav){
+        const id = fav.dataset.id; toggleFavorite(id); return;
+      }
+      const add = e.target.closest('[data-add]');
+      if (add){ addToCart(add.dataset.add); }
+    });
+
+    // Event delegation for favorites tab
+    favoriteItemsEl.addEventListener('click', (e) => {
+      const fav = e.target.closest('.heart');
+      if (fav) {
+        const id = fav.dataset.id;
+        toggleFavorite(id);
+      }
+    });
+
+    // Event delegation for orders tab
+    cartItemsListEl.addEventListener('click', (e) => {
+      const removeBtn = e.target.closest('.remove');
+      if (removeBtn) {
+        const id = removeBtn.getAttribute('data-del');
+        cart = cart.filter(x => x.id !== id);
+        renderCart(); // This will also update the Orders tab
+      }
+    });
+
+    cartItemsEl.addEventListener('click', (e)=>{
+      if (e.target.matches('[data-del]')){
+        const id = e.target.getAttribute('data-del');
+        cart = cart.filter(x=>x.id!==id); renderCart();
+      }
+      if (e.target.matches('[data-inc]')){
+        const id = e.target.getAttribute('data-inc');
+        const line = cart.find(x=>x.id===id); if(line){ line.qty++; renderCart(); }
+      }
+      if (e.target.matches('[data-dec]')){
+        const id = e.target.getAttribute('data-dec');
+        const line = cart.find(x=>x.id===id); if(line){ line.qty = Math.max(1, line.qty-1); renderCart(); }
+      }
+    });
+
+    cartItemsEl.addEventListener('change', (e)=>{
+      if (e.target.matches('[data-qty]')){
+        const id = e.target.getAttribute('data-qty');
+        const val = Math.max(1, parseInt(e.target.value||'1',10));
+        const line = cart.find(x=>x.id===id); if(line){ line.qty = val; renderCart(); }
+      }
+    });
+
+    function addToCart(id){
+      const existing = cart.find(x=>x.id===id);
+      if (existing) existing.qty++; else cart.push({id, qty:1, extra:'Spicy level'});
+      renderCart();
+    }
+
+    function toggleFavorite(id){
+      if (favorites.has(id)) favorites.delete(id); else favorites.add(id);
+      localStorage.setItem('favorites', JSON.stringify([...favorites]));
+      renderProducts(); // Re-render products to update heart icon
+      if (activeTab === 'favorites') { // Only re-render favorites if on that tab
+        renderFavorites();
+      }
+    }
+
+    // Tabs for product categories
+    document.querySelectorAll('.tab').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        activeTab = btn.dataset.tab;
+        renderProducts();
+      })
+    });
+
+    // Navigation Tabs (Home, Favorites, Orders, Inbox, Settings)
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const targetTab = btn.dataset.navTab;
+        document.querySelectorAll('.tab-content').forEach(content => {
+          content.classList.remove('active');
+        });
+        document.getElementById(`${targetTab}-content`).classList.add('active');
+
+        // Specific rendering for each main tab
+        if (targetTab === 'home') {
+          activeTab = 'nearby'; // Reset product category tab for home
+          document.querySelector('.tabs .tab.active').classList.remove('active');
+          document.querySelector('.tabs button[data-tab="nearby"]').classList.add('active');
+          renderProducts();
+        } else if (targetTab === 'favorites') {
+          renderFavorites();
+        } else if (targetTab === 'orders') {
+          renderOrdersTab();
+        }
+        // Inbox and Settings content are static, no dynamic rendering needed here
+      });
+    });
+
+    // Search
+    document.getElementById('search').addEventListener('input', (e)=>{
+      term = e.target.value.trim().toLowerCase();
+      renderProducts();
+    });
+
+    // Address toggle (demo)
+    document.getElementById('addrToggle').addEventListener('click', ()=>{
+      const line = document.getElementById('addrLine');
+      line.textContent = line.textContent === '1342 Morris Street' ? '221B Baker Street' : '1342 Morris Street';
+    });
+
+    document.getElementById('checkout').addEventListener('click', ()=>{
+      if (!cart.length) {
+        alert('Your cart is empty.');
+        return;
+      }
+
+      alert('✅ Order placed! (demo)');
+      cart = []; // Clear cart after checkout
+      renderCart();
+    });
+
+    // Checkout button in Orders tab
+    document.getElementById('orders-checkout').addEventListener('click', ()=>{
+      if (!cart.length) {
+        alert('Your cart is empty.');
+        return;
+      }
+
+      alert('✅ Order placed! (demo)');
+      cart = []; // Clear cart after checkout
+      renderCart();
+    });
+
+    // Initial render
+    renderProducts();
+    renderCart();
+    // No initial render for favorites/orders/inbox/settings as they are not the default active tab
+  </script>
+</body>
+</html>
+
